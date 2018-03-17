@@ -1,0 +1,6 @@
+1
+
+SSTTL # push 3
+SSTSL # push 2 => [2 3]
+TSST # 3 - 2 => [1]
+TLST

@@ -1,0 +1,6 @@
+1
+
+SSTTSTL # push 13
+SSTSSL  # push 4 [4 13]
+TSTT    # 13 % 4 => 1
+TLST    # 1

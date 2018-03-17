@@ -1,0 +1,10 @@
+2232
+
+SSTSL # push 2
+SSTTL # push 3 => [3 2]
+STSTL # copy the 2nd value of the stack => [2 3 2]
+STSTSL # copy the 3nd value of the stack => [2 2 3 2]
+TLST # print 2
+TLST # print 2
+TLST # print 3
+TLST # print 2

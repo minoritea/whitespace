@@ -1,0 +1,8 @@
+12
+
+SSTSL # push 2
+SSTL # push 1
+SSTL # push 1
+SSTL # push 1 => [1 1 1 2]
+STLTL # delete the 2nd and 3rd values => [1 2]
+TLSTTLST

@@ -1,0 +1,6 @@
+5
+
+SSTSL # push 2
+SSTTL # push 3 => [3 2]
+TSSS # 3 + 2 => [5]
+TLST  # print 5

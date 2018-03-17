@@ -1,0 +1,6 @@
+445
+
+SSTSTL # push 5
+SSTSSL # push 4 => [4 5]
+SLS # copy the top value of the stack => [4 4 5]
+TLSTTLSTTLST

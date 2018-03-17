@@ -1,0 +1,9 @@
+12
+SSTL # push 1
+SSTSSL # push 4
+SSTSL # push 2  => [2 4 1]
+TTS # store 2 to heap[4] => [1], {4: 2}
+TLST # print 1
+SSTSSL # push 4
+TTT #  load heap[4] => [2]
+TLST # print 2

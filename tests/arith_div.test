@@ -1,0 +1,9 @@
+43
+
+SSTTSTL # push 13
+SSTSSSL # push 8
+SSTSL   # push 2 => [2 8 13]
+TSTS    # 8 / 2 =>  [4 13]
+SLSTLST # print 4
+TSTS    # 13 / 4  => [3]
+TLST    # print 3
