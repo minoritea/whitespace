@@ -1,5 +1,5 @@
 10
-SSTL # push 1
-SSSL # push 0
+SS STL # push 1
+SS SSL # push 0
 SLT # swap
 TLSTTLST

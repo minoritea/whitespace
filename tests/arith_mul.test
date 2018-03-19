@@ -1,6 +1,6 @@
 21
 
-SSTTTL # push 7
-SSTTL  # push 3
+SSSTTTL # push 7
+SSSTTL  # push 3
 TSSL   # 7 * 3
 TLST   # print 21

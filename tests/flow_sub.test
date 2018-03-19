@@ -2,12 +2,12 @@
 LSLSSSSSSL # jump to main: "ssssss"
 
 LSSTSSSSTL # label "tsssst"
-SSTSTL     # push 5
+SSSTSTL     # push 5
 LTL # end of the subroutine: "tsssst"
 
 
 # main
 LSSSSSSSSL # label "ssssss" is main
-SSTSSL     # push 4
-LSTTSSSSTL # call "tsssst"
+SSSTSSL     # push 4
+LSTTSSSSTL # call "tsssst" => [5 4]
 TLST       # print
