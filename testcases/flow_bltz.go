@@ -1,5 +1,9 @@
-2
+package testcases
 
+func init() {
+	TestCases = append(TestCases, TestCase{
+		Expect: `2`,
+		ReadableSource: `
 LSL SSSSSS L # jump to main
 
 LSS TTTSSS L # label "tttsss"
@@ -13,3 +17,6 @@ SS TT L # push -1
 LTT TTTSSS L # jump "tttsss" if the top of the stack is negative
 
 LSS TTTTTT L # the end of the program
+`,
+	})
+}

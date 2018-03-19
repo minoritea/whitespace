@@ -1,4 +1,0 @@
-5
-SS STSSL # push 4
-SS STSTL # push 5 => [4 5]
-SLSTLST # print 5

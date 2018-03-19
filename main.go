@@ -283,22 +283,25 @@ type RunOption func(*Runtime)
 type RunOptions []RunOption
 
 func (options RunOptions) apply(rt *Runtime) {
-	for _, f := range RunOptions {
+	for _, f := range options {
 		f(rt)
 	}
 }
 
 func (p *Parser) Run(options ...RunOption) {
 	rt := &Runtime{
-		stdin:    os.Stdin,
-		stdout:   os.Stdout,
 		commands: p.Program,
 		heap:     make(map[int]int),
 		labels:   p.labels,
 	}
 
+	RunOptions(options).apply(rt)
+
 	rt.Run()
 }
+
+func SetStdin(r io.Reader) RunOption  { return func(rt *Runtime) { rt.stdin = r } }
+func SetStdout(w io.Writer) RunOption { return func(rt *Runtime) { rt.stdout = w } }
 
 func (p *Parser) parse() bool {
 	b, err := p.reader.ReadByte()
