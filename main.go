@@ -27,7 +27,7 @@ type Command interface {
 }
 
 type Runtime struct {
-	stdin     io.Reader
+	stdin     *bufio.Reader
 	stdout    io.Writer
 	stack     Stack
 	commands  Program
@@ -177,9 +177,10 @@ func (c *CommandArithMod) Exec(rt *Runtime) { v1, v2 := rt.Pop2(); rt.Push(v2 % 
 
 func (c *CommandHeapStore) Exec(rt *Runtime) { v1, v2 := rt.Pop2(); rt.heap[v2] = v1 }
 func (c *CommandHeapLoad) Exec(rt *Runtime) {
-	v, ok := rt.heap[rt.Pop()]
+	addr := rt.Pop()
+	v, ok := rt.heap[addr]
 	if !ok {
-		panic("No such address in the heap")
+		panic(fmt.Sprintf("No such address: %d in the heap", addr))
 	}
 	rt.Push(v)
 }
@@ -216,6 +217,20 @@ func (c CommandFlowHalt) Exec(rt *Runtime)    { rt.index = len(rt.commands) }
 func (c *CommandIOPutNum) Exec(rt *Runtime) { fmt.Fprintf(rt.stdout, "%d", rt.Pop()) }
 func (c *CommandIOPutRune) Exec(rt *Runtime) {
 	fmt.Fprintf(rt.stdout, "%s", string([]rune{rune(int32(rt.Pop()))}))
+}
+
+func (c *CommandIOReadNum) Exec(rt *Runtime) {
+	i := new(int)
+	fmt.Fscanf(rt.stdin, "%d", i)
+	rt.heap[rt.Pop()] = *i
+}
+
+func (c *CommandIOReadRune) Exec(rt *Runtime) {
+	r, _, err := rt.stdin.ReadRune()
+	if err != nil {
+		panic(err)
+	}
+	rt.heap[rt.Pop()] = int(int32(r))
 }
 
 type Op int
@@ -300,7 +315,7 @@ func (p *Parser) Run(options ...RunOption) {
 	rt.Run()
 }
 
-func SetStdin(r io.Reader) RunOption  { return func(rt *Runtime) { rt.stdin = r } }
+func SetStdin(r io.Reader) RunOption  { return func(rt *Runtime) { rt.stdin = bufio.NewReader(r) } }
 func SetStdout(w io.Writer) RunOption { return func(rt *Runtime) { rt.stdout = w } }
 
 func (p *Parser) parse() bool {
@@ -429,7 +444,7 @@ func (p *Parser) parse() bool {
 		case S:
 			p.state = S_TLS
 		case T:
-			goto UNKNOWN_STATE
+			p.state = S_TLT
 		case L:
 			goto UNKNOWN_STATE
 		}
@@ -445,6 +460,20 @@ func (p *Parser) parse() bool {
 			p.AddCommand(&CommandIOPutNum{})
 			p.state = S_START
 		case L:
+			goto UNKNOWN_STATE
+		}
+
+	case S_TLT:
+		switch b {
+		case T:
+			// TLTT
+			p.AddCommand(&CommandIOReadNum{})
+			p.state = S_START
+		case S:
+			// TLTS
+			p.AddCommand(&CommandIOReadRune{})
+			p.state = S_START
+		default:
 			goto UNKNOWN_STATE
 		}
 
@@ -540,6 +569,7 @@ const (
 	S_TT
 	S_TL
 	S_TLS
+	S_TLT
 
 	S_L
 	S_LS
@@ -562,6 +592,7 @@ var s2s = map[State]string{
 	S_TT:  "S_TT",
 	S_TL:  "S_TL",
 	S_TLS: "S_TLS",
+	S_TLT: "S_TLT",
 
 	S_L:  "S_L",
 	S_LS: "S_LS",

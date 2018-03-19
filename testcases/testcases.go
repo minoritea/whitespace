@@ -3,6 +3,7 @@ package testcases
 import "strings"
 
 type TestCase struct {
+	Name           string
 	Expect         string
 	ReadableSource string
 	Stdin          string
