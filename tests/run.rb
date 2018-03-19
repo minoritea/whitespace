@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+require "tempfile"
 testfile_lines = open(ARGV[0]).readlines rescue begin
   $stderr.puts "No valid test file was given."
   exit 1
@@ -16,18 +17,18 @@ source = testfile_lines[1..-1]
   .gsub(/T/, "\t")
   .gsub(/L/, "\n")
 
-Dir.chdir File.expand_path("../..", __FILE__)
+Tempfile.open do |t|
+  src_path = File.absolute_path(t.path)
+  t.write source
+  t.flush
+  Dir.chdir File.expand_path("../..", __FILE__)
+  result = `go run main.go #{src_path}`
 
-result = IO.popen(%w[go run main.go], 'r+') do |io|
-  io.write source
-  io.close_write
-  io.read
-end
-
-unless result == expect
-  $stderr.write """
+  unless result == expect
+    $stderr.write """
 The expected result is `#{expect}`,
 but the acutal result is `#{result}`.
-  """
-  exit 1
+    """
+    exit 1
+  end
 end

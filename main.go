@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	//	"github.com/pkg/errors"
 	"io"
 	"log"
 	"os"
@@ -26,6 +27,8 @@ type Command interface {
 }
 
 type Runtime struct {
+	stdin     io.Reader
+	stdout    io.Writer
 	stack     Stack
 	commands  Program
 	heap      map[int]int
@@ -36,7 +39,7 @@ type Runtime struct {
 
 func (rt *Runtime) stepIn() bool {
 	rt.commands[rt.index].Exec(rt)
-	// log.Printf("%T\n", rt.commands[rt.index])
+	// log.Printf("%d:\t%T\t%+v\n", rt.index, rt.commands[rt.index], rt.commands[rt.index])
 	rt.index += 1
 	return rt.index < len(rt.commands)
 }
@@ -128,7 +131,6 @@ type CommandStackDup struct{ CommandWithNoParam }
 type CommandStackSlide struct{ CommandWithParam }
 type CommandStackSwap struct{ CommandWithNoParam }
 type CommandStackDiscard struct{ CommandWithNoParam }
-type CommandIOPutNum struct{ CommandWithNoParam }
 type CommandArithAdd struct{ CommandWithNoParam }
 type CommandArithSub struct{ CommandWithNoParam }
 type CommandArithMul struct{ CommandWithNoParam }
@@ -151,6 +153,10 @@ type CommandFlowBEZ struct{ CommandWithParam }
 type CommandFlowBLTZ struct{ CommandWithParam }
 type CommandFlowEndSub struct{ CommandWithNoParam }
 type CommandFlowHalt struct{ CommandWithNoParam }
+type CommandIOPutNum struct{ CommandWithNoParam }
+type CommandIOPutRune struct{ CommandWithNoParam }
+type CommandIOReadNum struct{ CommandWithNoParam }
+type CommandIOReadRune struct{ CommandWithNoParam }
 
 func (c *CommandStackPush) Exec(rt *Runtime) { rt.Push(c.ParamToInt()) }
 func (c *CommandStackDupN) Exec(rt *Runtime) { rt.CopyToTop(c.ParamToInt()) }
@@ -192,9 +198,25 @@ func (c *CommandFlowGoSub) Exec(rt *Runtime) {
 	rt.PushToCallstack(c.index)
 	rt.JumpToLabel(c.ParamToInt())
 }
-func (c *CommandFlowEndSub) Exec(rt *Runtime) { rt.JumpToIndex(rt.PopFromCallstack()) }
 
-func (c *CommandIOPutNum) Exec(rt *Runtime) { fmt.Printf("%d", rt.Pop()) }
+func (c *CommandFlowBEZ) Exec(rt *Runtime) {
+	if rt.Pop() == 0 {
+		rt.JumpToLabel(c.ParamToInt())
+	}
+}
+
+func (c *CommandFlowBLTZ) Exec(rt *Runtime) {
+	if rt.Pop() < 0 {
+		rt.JumpToLabel(c.ParamToInt())
+	}
+}
+func (c *CommandFlowEndSub) Exec(rt *Runtime) { rt.JumpToIndex(rt.PopFromCallstack()) }
+func (c CommandFlowHalt) Exec(rt *Runtime)    { rt.index = len(rt.commands) }
+
+func (c *CommandIOPutNum) Exec(rt *Runtime) { fmt.Fprintf(rt.stdout, "%d", rt.Pop()) }
+func (c *CommandIOPutRune) Exec(rt *Runtime) {
+	fmt.Fprintf(rt.stdout, "%s", string([]rune{rune(int32(rt.Pop()))}))
+}
 
 type Op int
 type Param []bool
@@ -257,8 +279,19 @@ func (p Program) String() string {
 	return result
 }
 
-func (p *Parser) Run() {
+type RunOption func(*Runtime)
+type RunOptions []RunOption
+
+func (options RunOptions) apply(rt *Runtime) {
+	for _, f := range RunOptions {
+		f(rt)
+	}
+}
+
+func (p *Parser) Run(options ...RunOption) {
 	rt := &Runtime{
+		stdin:    os.Stdin,
+		stdout:   os.Stdout,
 		commands: p.Program,
 		heap:     make(map[int]int),
 		labels:   p.labels,
@@ -401,7 +434,9 @@ func (p *Parser) parse() bool {
 	case S_TLS:
 		switch b {
 		case S:
-			goto UNKNOWN_STATE
+			// TLSS
+			p.AddCommand(&CommandIOPutRune{})
+			p.state = S_START
 		case T:
 			// TLST
 			p.AddCommand(&CommandIOPutNum{})
@@ -439,12 +474,27 @@ func (p *Parser) parse() bool {
 	case S_LT:
 		switch b {
 		case S:
+			// LTS
+			p.AddCommand(&CommandFlowBEZ{})
+			p.state = S_READ_PARAM
+		case T:
+			// LTT
+			p.AddCommand(&CommandFlowBLTZ{})
+			p.state = S_READ_PARAM
+		case L:
+			// LTL
+			p.AddCommand(&CommandFlowEndSub{})
+			p.state = S_START
+		}
+	case S_LL:
+		switch b {
+		case S:
 			goto UNKNOWN_STATE
 		case T:
 			goto UNKNOWN_STATE
 		case L:
-			// LTL
-			p.AddCommand(&CommandFlowEndSub{})
+			// LLL
+			p.AddCommand(&CommandFlowHalt{})
 			p.state = S_START
 		}
 
@@ -518,6 +568,17 @@ var s2s = map[State]string{
 	S_READ_PARAM: "S_READ_PARAM",
 }
 
+func openSourceFile() (*os.File, error) {
+	if len(os.Args) < 2 {
+		log.Fatal(`Usage: whitespace [file]`)
+	}
+	return os.Open(os.Args[1])
+}
+
 func main() {
-	NewParser(os.Stdin).Parse().Run()
+	if f, err := openSourceFile(); err != nil {
+		log.Fatal(err)
+	} else {
+		NewParser(f).Parse().Run()
+	}
 }

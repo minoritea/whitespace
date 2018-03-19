@@ -1,0 +1,8 @@
+5
+
+SS STST L # push 5
+TLST # print
+LLL # halt
+SS STSS L # push 4
+TLST # print
+
