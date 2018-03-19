@@ -45,6 +45,10 @@ func (rt *Runtime) stepIn() bool {
 }
 
 func (rt *Runtime) Run() {
+	if len(rt.commands) < 1 {
+		return
+	}
+
 	for rt.stepIn() {
 	}
 }
@@ -613,6 +617,6 @@ func main() {
 	if f, err := openSourceFile(); err != nil {
 		log.Fatal(err)
 	} else {
-		NewParser(f).Parse().Run()
+		NewParser(f).Parse().Run(SetStdout(os.Stdout), SetStdin(os.Stdin))
 	}
 }
