@@ -1,0 +1,13 @@
+5
+LSLSSSSSSL # jump to main: "ssssss"
+
+LSSTSSSSTL # label "tsssst"
+SSTSTL     # push 5
+LTL # end of the subroutine: "tsssst"
+
+
+# main
+LSSSSSSSSL # label "ssssss" is main
+SSTSSL     # push 4
+LSTTSSSSTL # call "tsssst"
+TLST       # print
