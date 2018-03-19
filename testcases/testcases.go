@@ -1,6 +1,6 @@
 package testcases
 
-import "strings"
+import "github.com/minoritea/whitespace/converter"
 
 type TestCase struct {
 	Name           string
@@ -10,10 +10,7 @@ type TestCase struct {
 }
 
 func (tc TestCase) GetSource() string {
-	return strings.NewReplacer(
-		" ", "S", "\t", "T", "\n", "L",
-		"S", " ", "T", "\t", "L", "\n",
-	).Replace(tc.ReadableSource)
+	return converter.FromReadable(tc.ReadableSource)
 }
 
 var TestCases = make([]TestCase, 0)
