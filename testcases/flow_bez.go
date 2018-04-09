@@ -2,6 +2,7 @@ package testcases
 
 func init() {
 	TestCases = append(TestCases, TestCase{
+		Name:   "Bez",
 		Expect: `2`,
 		ReadableSource: `
 LSL SSSSSS L # jump to main

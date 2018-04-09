@@ -30,6 +30,7 @@ but the acutal result is "%s".
 
 func TestAll(t *testing.T) {
 	for _, tc := range testcases.TestCases {
+		t.Log(tc.Name)
 		t.Run(tc.Name, toTest(tc))
 	}
 }

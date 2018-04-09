@@ -2,6 +2,7 @@ package testcases
 
 func init() {
 	TestCases = append(TestCases, TestCase{
+		Name:   "Div",
 		Expect: `43`,
 		ReadableSource: `
 SSSTTSTL # push 13
